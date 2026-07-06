@@ -35,3 +35,9 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
 streamlit run frontend/streamlit_app.py
+
+
+<img width="1651" height="700" alt="Screenshot 2026-07-06 at 12 30 21 PM" src="https://github.com/user-attachments/assets/a8da1a85-3dd8-4dd8-8234-6f5d00a1517c" />
+<img width="1643" height="832" alt="Screenshot 2026-07-06 at 12 30 03 PM" src="https://github.com/user-attachments/assets/c93dbbdf-1c91-44d8-b8e3-014f15290ae5" />
+<img width="1619" height="562" alt="Screenshot 2026-07-06 at 12 29 47 PM" src="https://github.com/user-attachments/assets/af47ac31-4445-43e2-b0df-c98c8116585b" />
+<img width="862" height="458" alt="Screenshot 2026-07-06 at 12 29 38 PM" src="https://github.com/user-attachments/assets/585b5273-e044-4564-8ddc-7e8aa698b013" />
