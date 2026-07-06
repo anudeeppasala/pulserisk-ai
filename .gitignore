@@ -1,18 +1,8 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
 .venv/
-venv/
-
-# Environment
-.env
-
-# Database
-*.db
-*.sqlite3
-
-# IDE
-.vscode/
-.idea/
+__pycache__/
+*.pyc
 .DS_Store
+.env
+.streamlit/secrets.toml
+*.sqlite3
+*.db

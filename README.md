@@ -1,36 +1,37 @@
 # PulseRisk AI
 
-Customer review risk intelligence: ingest reviews, classify sentiment, score risk, and visualize insights.
+PulseRisk AI is a Voice-of-Customer Risk Intelligence platform that converts customer feedback into actionable risk signals, severity insights, and owner-team routing.
 
-## Structure
+## What it does
 
-- `backend/` - FastAPI service (ingestion, classification, analytics)
-- `frontend/` - Streamlit dashboard
-- `docs/` - architecture notes and demo script
+PulseRisk AI analyzes app reviews, support tickets, survey feedback, and customer comments to identify recurring product issues, operational risks, customer pain points, and high-severity complaint patterns.
 
-## Quick Start
+## Version 1 Features
 
-### Backend
+- Upload customer feedback CSV files
+- Classify comments by issue category
+- Detect sentiment and severity
+- Identify risk type
+- Route issues to owner teams
+- Show executive-style dashboard
+- Highlight high-risk comments
+
+## Tech Stack
+
+- Python
+- Streamlit
+- Pandas
+- Plotly
+- Rule-based classification engine
+
+## Sample Use Case
+
+A company receives hundreds of customer comments across app stores and support channels. PulseRisk AI groups those comments into categories like authentication issues, app reliability, customer support problems, document access issues, and security concerns, then routes them to the right owner team.
+
+## Run Locally
 
 ```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-API docs at http://localhost:8000/docs
-
-### Frontend
-
-```bash
-pip install streamlit
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
 streamlit run frontend/streamlit_app.py
-```
-
-Dashboard at http://localhost:8501
-
-### Docker
-
-```bash
-docker-compose up
-```
