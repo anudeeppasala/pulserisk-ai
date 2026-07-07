@@ -1,58 +1,71 @@
 # PulseRisk AI
 
-PulseRisk AI is a Voice-of-Customer Risk Intelligence platform that converts unstructured customer feedback into actionable product, operations, and risk insights.
+PulseRisk AI is an Enterprise Voice-of-Customer Risk Intelligence platform that converts unstructured customer feedback into actionable product, operations, and risk insights.
 
-Companies receive customer feedback from many places: app reviews, support tickets, surveys, call transcripts, and social comments. Most of this feedback is unstructured and difficult to analyze manually. PulseRisk AI helps teams classify comments, detect severity, identify risk types, route issues to owner teams, group recurring issues, suggest root causes, generate action tickets, and visualize customer pain points in an executive-style dashboard.
+It ingests customer comments, classifies issue categories, detects severity, identifies risk types, groups recurring issues, suggests root causes, generates internal action tickets, creates internal alerts, stores results in SQLite, tracks status changes, and produces executive reports.
 
-## Version 2
+## Current Version
 
-Version 2 expands the MVP from simple classification into root-cause and action intelligence.
+### PulseRisk AI V3 — Enterprise Workflow + Safe Review Ingestion Layer
 
-### V2 Features
+V3 turns PulseRisk AI from a dashboard into a self-contained enterprise workflow system.
 
-- Upload customer feedback CSV files
-- Use sample customer feedback data
-- Rule-based classification with AI-ready optional classifier
-- Classify comments by issue category
-- Detect sentiment
-- Assign severity level
-- Identify risk type
-- Route issues to owner teams
-- Recommend next actions
-- Filter by company, product, category, severity, sentiment, and risk type
-- Executive dashboard
+## Features
+
+- CSV ingestion
+- Mock Google Play review connector
+- Mock App Store review connector
+- Normalized review ingestion layer
+- Rule-based classification
+- Optional OpenAI classifier with safe fallback
+- Sentiment detection
+- Severity scoring
+- Risk type detection
+- Owner-team routing
 - Issue clustering
 - Root-cause suggestions
-- Product version impact detection
-- Simple spike detection
-- Jira-style action ticket generation
-- Download classified comments as CSV
-- Download action tickets as CSV
-- FastAPI backend with classification and insight endpoints
+- Product version impact analysis
+- Spike detection
+- Internal action tickets
+- Internal alert center
+- SQLite persistence
+- Ticket status workflow
+- Alert status workflow
+- Audit trail
+- Executive report generation
+- FastAPI backend
+- Streamlit executive dashboard
 
-## Example Categories
+## Why Mock Store Connectors?
 
-PulseRisk AI can classify comments into categories such as:
+Google Play and App Store review APIs usually require developer or app-owner credentials. This project avoids risky public scraping. Instead, it uses connector interfaces and mock normalized data to demonstrate production-ready ingestion architecture.
 
-- Authentication / Login
-- App Reliability
-- Customer Support
-- Documents
-- Billing / Payments
-- Fraud / Security Concern
-- Feature Request
-- General Feedback
+In production:
+
+```text
+Google Play Developer API / App Store Connect API
+        ↓
+PulseRisk ingestion connector
+        ↓
+Normalized review model
+        ↓
+Database
+        ↓
+Classification + clustering
+        ↓
+Tickets + alerts + reports
+```
 
 ## Tech Stack
 
 - Python
 - Streamlit
 - FastAPI
+- SQLite
 - Pandas
 - Plotly
 - Pydantic
 - OpenAI-ready classifier
-- Rule-based fallback classifier
 
 ## Project Structure
 
@@ -64,8 +77,14 @@ pulserisk-ai/
 │   └── app/
 │       ├── main.py
 │       ├── schemas.py
+│       ├── storage.py
 │       ├── data/
 │       │   └── sample_comments.csv
+│       ├── ingestion/
+│       │   ├── normalized_review.py
+│       │   ├── csv_ingestion.py
+│       │   ├── google_play_connector.py
+│       │   └── app_store_connector.py
 │       └── services/
 │           ├── action_tickets.py
 │           ├── ai_classifier.py
@@ -83,7 +102,7 @@ pulserisk-ai/
 └── docker-compose.yml
 ```
 
-## Run the Streamlit Dashboard
+## Run Streamlit Dashboard
 
 ```bash
 python3.12 -m venv .venv
@@ -92,7 +111,7 @@ pip install -r backend/requirements.txt
 streamlit run frontend/streamlit_app.py
 ```
 
-## Run the FastAPI Backend
+## Run FastAPI Backend
 
 ```bash
 source .venv/bin/activate
@@ -109,9 +128,9 @@ http://127.0.0.1:8000/docs
 
 ## Optional AI Classifier
 
-The app works without any API key using the transparent rule-based classifier.
+The app works without any API key.
 
-To enable the OpenAI classifier:
+To enable OpenAI classification:
 
 ```bash
 export OPENAI_API_KEY="your_api_key_here"
@@ -121,38 +140,18 @@ streamlit run frontend/streamlit_app.py
 
 Then enable **Use AI classifier** in the Streamlit sidebar.
 
-## Sample API Request
-
-```bash
-curl -X POST "http://127.0.0.1:8000/classify" \
-  -H "Content-Type: application/json" \
-  -d '{"comment_text": "The app keeps crashing after the latest update.", "rating": 1, "use_ai": false}'
-```
-
-## CSV Format
-
-Uploaded CSV files should include:
-
-```text
-source
-company
-product_name
-rating
-comment_text
-comment_date
-product_version
-```
-
 ## Product Vision
 
-The long-term vision for PulseRisk AI is to become an enterprise feedback intelligence system that can analyze reviews, support tickets, surveys, and call transcripts to detect customer pain patterns, operational risks, root causes, churn signals, and product issues.
+PulseRisk AI is designed as an enterprise operating layer for customer feedback intelligence.
 
-Future versions will include:
+Future improvements:
 
-- App Store and Google Play review ingestion
-- Embedding-based issue clustering
-- PostgreSQL storage
-- Jira and Slack integration
-- Role-based dashboards
-- PDF executive reports
-- Authentication and multi-user support
+- Real Google Play Developer API integration
+- Real App Store Connect API integration
+- PostgreSQL instead of SQLite
+- Embedding-based semantic clustering
+- Real Jira integration
+- Slack or Teams alerting
+- Role-based authentication
+- PDF reports
+- Scheduled ingestion jobs

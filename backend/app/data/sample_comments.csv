@@ -1,21 +1,21 @@
 source,company,product_name,rating,comment_text,comment_date,product_version
-app_store,Northstar,Mobile App,1,"After the latest update Face ID login keeps failing and I cannot access my account.",2026-07-01,9.94.0
-app_store,Northstar,Mobile App,1,"Face ID stopped working after the new version and now I am locked out.",2026-07-01,9.94.0
-support_ticket,Northstar,Mobile App,2,"The verification code never arrives and I cannot sign in.",2026-07-02,9.94.0
-google_play,Northstar,Mobile App,1,"Login keeps failing and password reset does not work.",2026-07-02,9.94.0
-app_store,Orion,Client Portal,1,"The app keeps crashing whenever I try to upload a document.",2026-07-02,4.8.1
-support_ticket,Orion,Client Portal,2,"Uploading documents fails every time and support told me to try later.",2026-07-03,4.8.1
-support_ticket,Orion,Client Portal,1,"The portal shows an unknown error when I upload my PDF document.",2026-07-03,4.8.1
-google_play,Summit,Customer Portal,1,"The page keeps loading forever and then shows an unknown error.",2026-07-04,4.8.1
-google_play,Summit,Customer Portal,1,"The app is very slow and freezes when I check my dashboard.",2026-07-04,4.8.1
-survey,Summit,Customer Portal,3,"I wish the dashboard had better filters and easier navigation.",2026-07-05,4.8.1
-support_ticket,Summit,Customer Portal,2,"Customer service keeps transferring me and nobody helps with my account issue.",2026-07-03,4.8.1
-support_ticket,Summit,Customer Portal,2,"Support keeps putting me on hold and nobody gives a clear answer.",2026-07-04,4.8.1
-app_store,Harbor,Mobile App,2,"I cannot download my monthly statement from the app.",2026-07-01,8.2.0
-support_ticket,Harbor,Digital Portal,1,"I was charged twice and I still did not receive a refund.",2026-07-06,8.2.0
-support_ticket,Harbor,Digital Portal,1,"There is an unauthorized transaction and the dispute process is confusing.",2026-07-05,8.2.0
-support_ticket,Harbor,Digital Portal,1,"I see suspicious activity and I cannot get help with my dispute.",2026-07-06,8.2.0
-survey,Northstar,Mobile App,4,"The app is good but the navigation could be cleaner.",2026-07-06,9.94.0
-app_store,Orion,Client Portal,2,"After the latest update the document section is broken.",2026-07-06,4.8.2
-google_play,Northstar,Mobile App,1,"Version 9.94.0 broke sign in and I cannot access anything.",2026-07-06,9.94.0
-support_ticket,Harbor,Digital Portal,2,"Refund status is unclear and the billing page does not explain the charge.",2026-07-06,8.2.0
+csv_upload,Northstar,Mobile App,1,"After the latest update Face ID login keeps failing and I cannot access my account.",2026-07-01,9.94.0
+csv_upload,Northstar,Mobile App,1,"Face ID stopped working after the new version and now I am locked out.",2026-07-01,9.94.0
+csv_upload,Northstar,Mobile App,2,"The verification code never arrives and I cannot sign in.",2026-07-02,9.94.0
+csv_upload,Northstar,Mobile App,1,"Login keeps failing and password reset does not work.",2026-07-02,9.94.0
+csv_upload,Orion,Client Portal,1,"The app keeps crashing whenever I try to upload a document.",2026-07-02,4.8.1
+csv_upload,Orion,Client Portal,2,"Uploading documents fails every time and support told me to try later.",2026-07-03,4.8.1
+csv_upload,Orion,Client Portal,1,"The portal shows an unknown error when I upload my PDF document.",2026-07-03,4.8.1
+csv_upload,Summit,Customer Portal,1,"The page keeps loading forever and then shows an unknown error.",2026-07-04,4.8.1
+csv_upload,Summit,Customer Portal,1,"The app is very slow and freezes when I check my dashboard.",2026-07-04,4.8.1
+csv_upload,Summit,Customer Portal,3,"I wish the dashboard had better filters and easier navigation.",2026-07-05,4.8.1
+csv_upload,Summit,Customer Portal,2,"Customer service keeps transferring me and nobody helps with my account issue.",2026-07-03,4.8.1
+csv_upload,Summit,Customer Portal,2,"Support keeps putting me on hold and nobody gives a clear answer.",2026-07-04,4.8.1
+csv_upload,Harbor,Mobile App,2,"I cannot download my monthly statement from the app.",2026-07-01,8.2.0
+csv_upload,Harbor,Digital Portal,1,"I was charged twice and I still did not receive a refund.",2026-07-06,8.2.0
+csv_upload,Harbor,Digital Portal,1,"There is an unauthorized transaction and the dispute process is confusing.",2026-07-05,8.2.0
+csv_upload,Harbor,Digital Portal,1,"I see suspicious activity and I cannot get help with my dispute.",2026-07-06,8.2.0
+csv_upload,Northstar,Mobile App,4,"The app is good but the navigation could be cleaner.",2026-07-06,9.94.0
+csv_upload,Orion,Client Portal,2,"After the latest update the document section is broken.",2026-07-06,4.8.2
+csv_upload,Northstar,Mobile App,1,"Version 9.94.0 broke sign in and I cannot access anything.",2026-07-06,9.94.0
+csv_upload,Harbor,Digital Portal,2,"Refund status is unclear and the billing page does not explain the charge.",2026-07-06,8.2.0

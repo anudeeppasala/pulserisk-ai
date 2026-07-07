@@ -4,10 +4,6 @@ import pandas as pd
 
 
 def generate_action_tickets(clusters_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Converts issue clusters into Jira-style action tickets.
-    """
-
     if clusters_df.empty:
         return pd.DataFrame()
 
@@ -15,7 +11,6 @@ def generate_action_tickets(clusters_df: pd.DataFrame) -> pd.DataFrame:
 
     for _, row in clusters_df.iterrows():
         ticket_type = _ticket_type_from_severity(row["highest_severity"])
-
         ticket_title = f"[{row['highest_severity']}] {row['issue_title']} - {row['product_name']}"
 
         description = (
@@ -42,7 +37,7 @@ def generate_action_tickets(clusters_df: pd.DataFrame) -> pd.DataFrame:
                 "priority": row["highest_severity"],
                 "owner_team": row["owner_team"],
                 "risk_type": row["risk_type"],
-                "status": "Open",
+                "status": "New",
                 "description": description,
             }
         )
@@ -53,8 +48,11 @@ def generate_action_tickets(clusters_df: pd.DataFrame) -> pd.DataFrame:
 def _ticket_type_from_severity(severity: str) -> str:
     if severity == "Critical":
         return "Incident"
+
     if severity == "High":
         return "Bug"
+
     if severity == "Medium":
         return "Task"
+
     return "Improvement"

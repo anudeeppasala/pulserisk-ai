@@ -27,15 +27,6 @@ def classify_comment_ai_ready(
     rating: Optional[int] = None,
     use_ai: bool = False,
 ) -> dict:
-    """
-    AI-ready classifier.
-
-    If use_ai=True and OPENAI_API_KEY exists, this uses an LLM.
-    Otherwise, it safely falls back to the rule-based classifier.
-
-    This keeps V2 demo-ready even without paid API keys.
-    """
-
     if not use_ai or not os.getenv("OPENAI_API_KEY"):
         return classify_comment_rule_based(text=text, rating=rating)
 

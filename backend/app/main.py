@@ -2,28 +2,48 @@ import pandas as pd
 from fastapi import FastAPI
 
 from app.schemas import (
+    AlertStatusUpdateRequest,
     BatchClassificationRequest,
     CommentClassificationRequest,
     CommentClassificationResponse,
+    TicketStatusUpdateRequest,
 )
 from app.services.action_tickets import generate_action_tickets
 from app.services.ai_classifier import classify_comment_ai_ready
 from app.services.clustering import build_issue_clusters, detect_spikes, detect_version_impact
+from app.storage import (
+    create_alerts_from_tickets,
+    fetch_action_tickets,
+    fetch_alerts,
+    fetch_audit_events,
+    fetch_classified_comments,
+    get_database_summary,
+    init_db,
+    save_action_tickets,
+    save_classified_comments,
+    update_alert_status,
+    update_ticket_status,
+)
 
 app = FastAPI(
     title="PulseRisk AI API",
-    description="Voice-of-Customer Risk Intelligence API for classifying feedback, detecting issue clusters, and generating action tickets.",
-    version="2.0.0",
+    description="Enterprise Voice-of-Customer Risk Intelligence API.",
+    version="3.0.0",
 )
+
+
+@app.on_event("startup")
+def startup_event() -> None:
+    init_db()
 
 
 @app.get("/")
 def root() -> dict:
     return {
         "app": "PulseRisk AI",
-        "version": "2.0.0",
+        "version": "3.0.0",
         "status": "running",
-        "message": "Voice-of-Customer Risk Intelligence API",
+        "message": "Enterprise Voice-of-Customer Risk Intelligence API",
     }
 
 
@@ -31,8 +51,13 @@ def root() -> dict:
 def health_check() -> dict:
     return {
         "status": "healthy",
-        "version": "2.0.0",
+        "version": "3.0.0",
     }
+
+
+@app.get("/db-summary")
+def database_summary() -> dict:
+    return get_database_summary()
 
 
 @app.post("/classify", response_model=CommentClassificationResponse)
@@ -44,104 +69,9 @@ def classify_comment(request: CommentClassificationRequest) -> dict:
     )
 
 
-@app.post("/batch-classify")
-def batch_classify(request: BatchClassificationRequest) -> dict:
-    records = []
-
-    for item in request.comments:
-        result = classify_comment_ai_ready(
-            text=item.comment_text,
-            rating=item.rating,
-            use_ai=request.use_ai,
-        )
-
-        records.append(
-            {
-                **item.model_dump(),
-                **result,
-            }
-        )
-
-    return {
-        "count": len(records),
-        "results": records,
-    }
-
-
-@app.post("/clusters")
-def generate_clusters(request: BatchClassificationRequest) -> dict:
-    records = []
-
-    for item in request.comments:
-        result = classify_comment_ai_ready(
-            text=item.comment_text,
-            rating=item.rating,
-            use_ai=request.use_ai,
-        )
-
-        records.append(
-            {
-                **item.model_dump(),
-                **result,
-            }
-        )
-
-    classified_df = pd.DataFrame(records)
-    clusters_df = build_issue_clusters(classified_df)
-
-    return {
-        "count": len(clusters_df),
-        "clusters": clusters_df.to_dict(orient="records"),
-    }
-
-
-@app.post("/tickets")
-def generate_tickets(request: BatchClassificationRequest) -> dict:
-    records = []
-
-    for item in request.comments:
-        result = classify_comment_ai_ready(
-            text=item.comment_text,
-            rating=item.rating,
-            use_ai=request.use_ai,
-        )
-
-        records.append(
-            {
-                **item.model_dump(),
-                **result,
-            }
-        )
-
-    classified_df = pd.DataFrame(records)
-    clusters_df = build_issue_clusters(classified_df)
-    tickets_df = generate_action_tickets(clusters_df)
-
-    return {
-        "count": len(tickets_df),
-        "tickets": tickets_df.to_dict(orient="records"),
-    }
-
-
 @app.post("/insights")
 def generate_insights(request: BatchClassificationRequest) -> dict:
-    records = []
-
-    for item in request.comments:
-        result = classify_comment_ai_ready(
-            text=item.comment_text,
-            rating=item.rating,
-            use_ai=request.use_ai,
-        )
-
-        records.append(
-            {
-                **item.model_dump(),
-                **result,
-            }
-        )
-
-    classified_df = pd.DataFrame(records)
+    classified_df = _classify_batch_to_dataframe(request)
     clusters_df = build_issue_clusters(classified_df)
     tickets_df = generate_action_tickets(clusters_df)
     spikes_df = detect_spikes(classified_df)
@@ -158,3 +88,106 @@ def generate_insights(request: BatchClassificationRequest) -> dict:
         "spikes": spikes_df.to_dict(orient="records"),
         "version_impact": version_impact_df.to_dict(orient="records"),
     }
+
+
+@app.post("/persist-insights")
+def persist_insights(request: BatchClassificationRequest) -> dict:
+    classified_df = _classify_batch_to_dataframe(request)
+    clusters_df = build_issue_clusters(classified_df)
+    tickets_df = generate_action_tickets(clusters_df)
+
+    comments_saved = save_classified_comments(classified_df)
+    tickets_saved = save_action_tickets(tickets_df)
+    alerts_created = create_alerts_from_tickets(tickets_df)
+
+    return {
+        "comments_saved": comments_saved,
+        "tickets_saved": tickets_saved,
+        "alerts_created": alerts_created,
+    }
+
+
+@app.get("/comments")
+def get_comments() -> dict:
+    df = fetch_classified_comments()
+    return {
+        "count": len(df),
+        "comments": df.to_dict(orient="records"),
+    }
+
+
+@app.get("/tickets")
+def get_tickets() -> dict:
+    df = fetch_action_tickets()
+    return {
+        "count": len(df),
+        "tickets": df.to_dict(orient="records"),
+    }
+
+
+@app.post("/tickets/status")
+def change_ticket_status(request: TicketStatusUpdateRequest) -> dict:
+    update_ticket_status(
+        ticket_id=request.ticket_id,
+        new_status=request.new_status,
+        note=request.note or "",
+    )
+
+    return {
+        "ticket_id": request.ticket_id,
+        "new_status": request.new_status,
+        "status": "updated",
+    }
+
+
+@app.get("/alerts")
+def get_alerts() -> dict:
+    df = fetch_alerts()
+    return {
+        "count": len(df),
+        "alerts": df.to_dict(orient="records"),
+    }
+
+
+@app.post("/alerts/status")
+def change_alert_status(request: AlertStatusUpdateRequest) -> dict:
+    update_alert_status(
+        alert_id=request.alert_id,
+        new_status=request.new_status,
+        note=request.note or "",
+    )
+
+    return {
+        "alert_id": request.alert_id,
+        "new_status": request.new_status,
+        "status": "updated",
+    }
+
+
+@app.get("/audit")
+def get_audit_events() -> dict:
+    df = fetch_audit_events()
+    return {
+        "count": len(df),
+        "audit_events": df.to_dict(orient="records"),
+    }
+
+
+def _classify_batch_to_dataframe(request: BatchClassificationRequest) -> pd.DataFrame:
+    records = []
+
+    for item in request.comments:
+        result = classify_comment_ai_ready(
+            text=item.comment_text,
+            rating=item.rating,
+            use_ai=request.use_ai,
+        )
+
+        records.append(
+            {
+                **item.model_dump(),
+                **result,
+            }
+        )
+
+    return pd.DataFrame(records)

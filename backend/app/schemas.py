@@ -34,3 +34,15 @@ class BatchCommentItem(BaseModel):
 class BatchClassificationRequest(BaseModel):
     comments: list[BatchCommentItem]
     use_ai: bool = False
+
+
+class TicketStatusUpdateRequest(BaseModel):
+    ticket_id: str
+    new_status: str
+    note: Optional[str] = ""
+
+
+class AlertStatusUpdateRequest(BaseModel):
+    alert_id: int
+    new_status: str
+    note: Optional[str] = ""

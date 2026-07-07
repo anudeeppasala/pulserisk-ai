@@ -6,13 +6,6 @@ def _contains_any(text: str, keywords: list[str]) -> bool:
 
 
 def classify_comment_rule_based(text: str, rating: Optional[int] = None) -> dict:
-    """
-    Transparent rule-based classifier used as the default V2 fallback.
-
-    V2 supports AI-ready classification, but this rule engine keeps the project
-    fully runnable without API keys.
-    """
-
     clean_text = text.strip()
     text_lower = clean_text.lower()
 
@@ -83,6 +76,7 @@ def classify_comment_rule_based(text: str, rating: Optional[int] = None) -> dict
             "security",
             "stolen",
             "suspicious",
+            "suspicious activity",
         ],
     ):
         category = "Fraud / Security Concern"
@@ -119,10 +113,12 @@ def classify_comment_rule_based(text: str, rating: Optional[int] = None) -> dict
             "support",
             "hold",
             "transfer",
+            "transferred",
             "representative",
             "agent",
             "nobody helps",
             "no response",
+            "does not respond",
         ],
     ):
         category = "Customer Support"

@@ -7,15 +7,6 @@ from app.services.risk_rules import get_severity_rank
 
 
 def build_issue_clusters(classified_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Groups classified comments into issue clusters.
-
-    V2 clustering is intentionally transparent:
-    cluster = company + product_name + category + sub_category
-
-    Later versions can replace this with embedding/vector clustering.
-    """
-
     if classified_df.empty:
         return pd.DataFrame()
 
@@ -31,6 +22,7 @@ def build_issue_clusters(classified_df: pd.DataFrame) -> pd.DataFrame:
         "comment_date",
         "product_version",
         "recommended_action",
+        "sentiment",
     ]
 
     for column in required_columns:
@@ -46,6 +38,7 @@ def build_issue_clusters(classified_df: pd.DataFrame) -> pd.DataFrame:
 
     for cluster_id, ((company, product_name, category, sub_category), group) in enumerate(grouped, start=1):
         severity_counts = group["severity"].value_counts().to_dict()
+
         highest_severity = max(
             group["severity"].dropna().tolist(),
             key=get_severity_rank,
@@ -58,12 +51,10 @@ def build_issue_clusters(classified_df: pd.DataFrame) -> pd.DataFrame:
         versions = sorted([str(v) for v in group["product_version"].dropna().unique().tolist()])
         first_seen = str(group["comment_date"].min())
         last_seen = str(group["comment_date"].max())
-
         sample_comments = group["comment_text"].head(3).tolist()
 
         root_cause = suggest_root_cause(
             category=category,
-            sub_category=sub_category,
             group=group,
         )
 
@@ -102,7 +93,7 @@ def build_issue_clusters(classified_df: pd.DataFrame) -> pd.DataFrame:
     return clusters_df
 
 
-def suggest_root_cause(category: str, sub_category: str, group: pd.DataFrame) -> str:
+def suggest_root_cause(category: str, group: pd.DataFrame) -> str:
     text_blob = " ".join(group["comment_text"].astype(str).tolist()).lower()
     versions = group["product_version"].dropna().astype(str).unique().tolist()
 
@@ -168,13 +159,6 @@ def calculate_priority_score(group: pd.DataFrame) -> int:
 
 
 def detect_spikes(classified_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Detects simple spikes by category and date.
-
-    V2 logic:
-    If a category has 3+ comments on the same date, flag it as a spike.
-    """
-
     if classified_df.empty or "comment_date" not in classified_df.columns:
         return pd.DataFrame()
 
@@ -198,10 +182,6 @@ def detect_spikes(classified_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def detect_version_impact(classified_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Detects product versions with high complaint concentration.
-    """
-
     if classified_df.empty or "product_version" not in classified_df.columns:
         return pd.DataFrame()
 
@@ -218,6 +198,7 @@ def detect_version_impact(classified_df: pd.DataFrame) -> pd.DataFrame:
 
 def _most_common_value(values: list[Any]) -> str:
     cleaned = [str(value) for value in values if str(value).strip()]
+
     if not cleaned:
         return ""
 
