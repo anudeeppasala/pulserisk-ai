@@ -23,8 +23,8 @@ st.markdown(
     """
     **Voice-of-Customer Risk Intelligence Platform**
 
-    Convert customer comments, reviews, support tickets, and survey feedback into
-    issue categories, risk signals, severity insights, and owner-team routing.
+    Convert customer comments, app reviews, support tickets, and survey feedback into
+    issue categories, sentiment, severity, risk signals, recommended actions, and owner-team routing.
     """
 )
 
@@ -37,11 +37,32 @@ def load_sample_data() -> pd.DataFrame:
     return pd.read_csv(sample_path)
 
 
+def validate_input_dataframe(df: pd.DataFrame) -> list[str]:
+    required_columns = {
+        "source",
+        "company",
+        "product_name",
+        "rating",
+        "comment_text",
+        "comment_date",
+        "product_version",
+    }
+
+    missing_columns = sorted(required_columns - set(df.columns))
+    return missing_columns
+
+
 def classify_comments(df: pd.DataFrame) -> pd.DataFrame:
     records = []
 
     for _, row in df.iterrows():
-        rating = int(row["rating"]) if "rating" in row and not pd.isna(row["rating"]) else None
+        rating = None
+
+        if "rating" in row and not pd.isna(row["rating"]):
+            try:
+                rating = int(row["rating"])
+            except ValueError:
+                rating = None
 
         result = classify_comment_rule_based(
             text=str(row["comment_text"]),
@@ -55,46 +76,55 @@ def classify_comments(df: pd.DataFrame) -> pd.DataFrame:
             }
         )
 
-    return pd.DataFrame(records)
+    classified_df = pd.DataFrame(records)
+
+    severity_order = {
+        "Critical": 4,
+        "High": 3,
+        "Medium": 2,
+        "Low": 1,
+    }
+
+    classified_df["severity_rank"] = classified_df["severity"].map(severity_order).fillna(0)
+
+    return classified_df
 
 
 uploaded_file = st.file_uploader(
     "Upload customer feedback CSV",
     type=["csv"],
-    help="CSV should include columns like source, company, product_name, rating, comment_text, comment_date, product_version.",
+    help=(
+        "CSV should include: source, company, product_name, rating, "
+        "comment_text, comment_date, product_version."
+    ),
 )
 
 if uploaded_file:
-    df = pd.read_csv(uploaded_file)
+    raw_df = pd.read_csv(uploaded_file)
+    st.success("Uploaded customer feedback CSV successfully.")
 else:
-    df = load_sample_data()
+    raw_df = load_sample_data()
+    st.caption("Using sample customer feedback data. Upload a CSV to analyze your own data.")
 
-required_columns = {"company", "product_name", "rating", "comment_text"}
-
-missing_columns = required_columns - set(df.columns)
+missing_columns = validate_input_dataframe(raw_df)
 
 if missing_columns:
     st.error(
-        f"Missing required columns: {', '.join(missing_columns)}. "
-        "Please upload a valid customer feedback CSV."
+        "Your CSV is missing required columns: "
+        + ", ".join(missing_columns)
+        + ". Please update the file and upload again."
     )
     st.stop()
 
-classified_df = classify_comments(df)
-
-severity_order = {
-    "Critical": 4,
-    "High": 3,
-    "Medium": 2,
-    "Low": 1,
-}
-
-classified_df["severity_rank"] = classified_df["severity"].map(severity_order).fillna(0)
+classified_df = classify_comments(raw_df)
 
 st.sidebar.header("🔎 Filters")
 
 companies = ["All"] + sorted(classified_df["company"].dropna().unique().tolist())
 selected_company = st.sidebar.selectbox("Company", companies)
+
+products = ["All"] + sorted(classified_df["product_name"].dropna().unique().tolist())
+selected_product = st.sidebar.selectbox("Product", products)
 
 severities = ["All", "Critical", "High", "Medium", "Low"]
 selected_severity = st.sidebar.selectbox("Severity", severities)
@@ -105,10 +135,16 @@ selected_category = st.sidebar.selectbox("Category", categories)
 risk_types = ["All"] + sorted(classified_df["risk_type"].dropna().unique().tolist())
 selected_risk_type = st.sidebar.selectbox("Risk Type", risk_types)
 
+sentiments = ["All"] + sorted(classified_df["sentiment"].dropna().unique().tolist())
+selected_sentiment = st.sidebar.selectbox("Sentiment", sentiments)
+
 filtered_df = classified_df.copy()
 
 if selected_company != "All":
     filtered_df = filtered_df[filtered_df["company"] == selected_company]
+
+if selected_product != "All":
+    filtered_df = filtered_df[filtered_df["product_name"] == selected_product]
 
 if selected_severity != "All":
     filtered_df = filtered_df[filtered_df["severity"] == selected_severity]
@@ -118,6 +154,9 @@ if selected_category != "All":
 
 if selected_risk_type != "All":
     filtered_df = filtered_df[filtered_df["risk_type"] == selected_risk_type]
+
+if selected_sentiment != "All":
+    filtered_df = filtered_df[filtered_df["sentiment"] == selected_sentiment]
 
 filtered_df = filtered_df.sort_values(by="severity_rank", ascending=False)
 
@@ -142,11 +181,17 @@ top_category = (
     else "No data"
 )
 
+top_risk_type = (
+    filtered_df["risk_type"].value_counts().idxmax()
+    if not filtered_df.empty
+    else "No data"
+)
+
 st.info(
     f"""
     **Executive Summary:**  
     The dashboard analyzed **{total_comments} customer comments**.  
-    The top issue category is **{top_category}**.  
+    The top issue category is **{top_category}** and the leading risk type is **{top_risk_type}**.  
     There are **{critical_count} critical** and **{high_count} high-severity** issues requiring attention.
     """
 )
@@ -270,30 +315,30 @@ else:
 
 st.subheader("📋 All Classified Comments")
 
+display_columns = [
+    "source",
+    "company",
+    "product_name",
+    "rating",
+    "comment_text",
+    "category",
+    "sub_category",
+    "sentiment",
+    "severity",
+    "risk_type",
+    "owner_team",
+    "recommended_action",
+]
+
 st.dataframe(
-    filtered_df[
-        [
-            "source",
-            "company",
-            "product_name",
-            "rating",
-            "comment_text",
-            "category",
-            "sub_category",
-            "sentiment",
-            "severity",
-            "risk_type",
-            "owner_team",
-            "recommended_action",
-        ]
-    ],
+    filtered_df[display_columns],
     use_container_width=True,
     hide_index=True,
 )
 
 st.download_button(
     label="Download Classified Results as CSV",
-    data=filtered_df.to_csv(index=False),
+    data=filtered_df[display_columns].to_csv(index=False),
     file_name="pulserisk_classified_comments.csv",
     mime="text/csv",
 )

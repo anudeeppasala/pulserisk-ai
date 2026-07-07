@@ -1,6 +1,29 @@
-"""Risk rules for classifying comments."""
-def classify_comment_rule_based(text: str, rating: int | None = None) -> dict:
-    text_lower = text.lower()
+from typing import Optional
+
+
+def _contains_any(text: str, keywords: list[str]) -> bool:
+    return any(keyword in text for keyword in keywords)
+
+
+def classify_comment_rule_based(text: str, rating: Optional[int] = None) -> dict:
+    """
+    Rule-based classifier for PulseRisk AI V1.
+
+    This function classifies unstructured customer feedback into:
+    - category
+    - sub_category
+    - sentiment
+    - severity
+    - risk_type
+    - owner_team
+    - recommended_action
+
+    V1 intentionally uses transparent rules so the dashboard works without any API keys.
+    Later versions can replace or enhance this with an LLM classifier.
+    """
+
+    clean_text = text.strip()
+    text_lower = clean_text.lower()
 
     category = "General Feedback"
     sub_category = "General Comment"
@@ -9,58 +32,159 @@ def classify_comment_rule_based(text: str, rating: int | None = None) -> dict:
     severity = "Low"
     recommended_action = "Review customer feedback for potential product or service improvements."
 
-    if any(word in text_lower for word in ["login", "password", "face id", "touch id", "sign in", "locked out"]):
+    if _contains_any(
+        text_lower,
+        [
+            "login",
+            "log in",
+            "password",
+            "face id",
+            "touch id",
+            "sign in",
+            "signin",
+            "locked out",
+            "verification code",
+            "otp",
+            "authentication",
+            "access my account",
+        ],
+    ):
         category = "Authentication / Login"
         sub_category = "Login or account access issue"
         risk_type = "Operational Risk"
         owner_team = "Identity & Access Team"
         severity = "High"
-        recommended_action = "Investigate authentication and account access failures."
+        recommended_action = "Investigate authentication, verification, and account access failures."
 
-    elif any(word in text_lower for word in ["crash", "freez", "slow", "loading", "bug", "error"]):
+    elif _contains_any(
+        text_lower,
+        [
+            "crash",
+            "crashing",
+            "freez",
+            "slow",
+            "loading",
+            "bug",
+            "error",
+            "unknown error",
+            "not working",
+            "blank screen",
+            "stuck",
+        ],
+    ):
         category = "App Reliability"
-        sub_category = "Crash or performance issue"
+        sub_category = "Crash, bug, or performance issue"
         risk_type = "Digital Reliability Risk"
         owner_team = "Application Platform Team"
         severity = "High"
-        recommended_action = "Review recent releases and performance logs for app stability issues."
+        recommended_action = "Review recent releases, app telemetry, and performance logs for stability issues."
 
-    elif any(word in text_lower for word in ["fraud", "dispute", "unauthorized", "money missing", "scam", "security"]):
+    elif _contains_any(
+        text_lower,
+        [
+            "fraud",
+            "dispute",
+            "unauthorized",
+            "money missing",
+            "scam",
+            "security",
+            "stolen",
+            "suspicious",
+        ],
+    ):
         category = "Fraud / Security Concern"
         sub_category = "Potential fraud, dispute, or security issue"
         risk_type = "Security / Compliance Risk"
         owner_team = "Security Operations Team"
         severity = "Critical"
-        recommended_action = "Escalate to security or compliance review queue."
+        recommended_action = "Escalate to security, fraud, or compliance review queue."
 
-    elif any(word in text_lower for word in ["statement", "document", "tax", "pdf", "download", "upload"]):
+    elif _contains_any(
+        text_lower,
+        [
+            "statement",
+            "document",
+            "tax",
+            "pdf",
+            "download",
+            "upload",
+            "file",
+            "attachment",
+        ],
+    ):
         category = "Documents"
-        sub_category = "Document access or upload issue"
+        sub_category = "Document access, upload, or download issue"
         risk_type = "Service Operations Risk"
         owner_team = "Document Services Team"
         severity = "Medium"
-        recommended_action = "Investigate document access, upload, or download workflow."
+        recommended_action = "Investigate document access, upload, download, or file-processing workflow."
 
-    elif any(word in text_lower for word in ["customer service", "support", "hold", "transfer", "representative", "agent"]):
+    elif _contains_any(
+        text_lower,
+        [
+            "customer service",
+            "support",
+            "hold",
+            "transfer",
+            "representative",
+            "agent",
+            "nobody helps",
+            "no response",
+        ],
+    ):
         category = "Customer Support"
         sub_category = "Support experience issue"
         risk_type = "Customer Experience Risk"
         owner_team = "Support Operations Team"
         severity = "Medium"
-        recommended_action = "Review support workflow and escalation handling."
+        recommended_action = "Review support workflow, handoff quality, and escalation handling."
 
-    elif any(word in text_lower for word in ["payment", "billing", "charge", "fee", "refund"]):
+    elif _contains_any(
+        text_lower,
+        [
+            "payment",
+            "billing",
+            "charge",
+            "charged",
+            "fee",
+            "refund",
+            "double charged",
+            "transaction",
+        ],
+    ):
         category = "Billing / Payments"
-        sub_category = "Payment, charge, or refund issue"
+        sub_category = "Payment, charge, refund, or transaction issue"
         risk_type = "Financial Operations Risk"
         owner_team = "Billing Operations Team"
         severity = "High"
-        recommended_action = "Review billing/payment transaction handling."
+        recommended_action = "Review billing, refund, and payment transaction handling."
 
-    if rating is not None and rating <= 2 and severity == "Low":
-        severity = "Medium"
+    elif _contains_any(
+        text_lower,
+        [
+            "filter",
+            "navigation",
+            "feature",
+            "wish",
+            "improve",
+            "better",
+            "enhancement",
+        ],
+    ):
+        category = "Feature Request"
+        sub_category = "Product enhancement request"
+        risk_type = "Product Experience Opportunity"
+        owner_team = "Product Management Team"
+        severity = "Low"
+        recommended_action = "Review as product enhancement input for roadmap planning."
 
-    sentiment = "Negative" if rating is not None and rating <= 2 else "Neutral"
+    sentiment = _detect_sentiment(text_lower=text_lower, rating=rating)
+
+    if rating is not None:
+        if rating <= 1 and severity in ["Low", "Medium"]:
+            severity = "High"
+        elif rating <= 2 and severity == "Low":
+            severity = "Medium"
 
     return {
         "category": category,
@@ -70,5 +194,60 @@ def classify_comment_rule_based(text: str, rating: int | None = None) -> dict:
         "risk_type": risk_type,
         "owner_team": owner_team,
         "recommended_action": recommended_action,
-        "summary": text[:180],
+        "summary": clean_text[:180],
     }
+
+
+def _detect_sentiment(text_lower: str, rating: Optional[int]) -> str:
+    negative_keywords = [
+        "bad",
+        "terrible",
+        "awful",
+        "hate",
+        "frustrating",
+        "angry",
+        "worst",
+        "broken",
+        "not working",
+        "cannot",
+        "can't",
+        "failed",
+        "failing",
+        "confusing",
+    ]
+
+    positive_keywords = [
+        "good",
+        "great",
+        "excellent",
+        "love",
+        "helpful",
+        "easy",
+        "smooth",
+        "fast",
+    ]
+
+    if rating is not None:
+        if rating <= 2:
+            return "Negative"
+        if rating >= 4:
+            return "Positive"
+
+    if _contains_any(text_lower, negative_keywords):
+        return "Negative"
+
+    if _contains_any(text_lower, positive_keywords):
+        return "Positive"
+
+    return "Neutral"
+
+
+def get_severity_rank(severity: str) -> int:
+    severity_order = {
+        "Critical": 4,
+        "High": 3,
+        "Medium": 2,
+        "Low": 1,
+    }
+
+    return severity_order.get(severity, 0)

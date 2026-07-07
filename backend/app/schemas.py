@@ -1,25 +1,18 @@
-"""Pydantic schemas for request/response validation."""
-
-from datetime import datetime
-
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Optional
 
 
-class ReviewBase(BaseModel):
-    text: str
-    rating: int | None = None
+class CommentClassificationRequest(BaseModel):
+    comment_text: str = Field(..., description="Customer feedback text to classify.")
+    rating: Optional[int] = Field(None, description="Optional customer rating, usually 1 to 5.")
 
 
-class ReviewCreate(ReviewBase):
-    pass
-
-
-class ReviewOut(ReviewBase):
-    id: int
-    sentiment: str | None = None
-    risk_score: float | None = None
-    risk_level: str | None = None
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
+class CommentClassificationResponse(BaseModel):
+    category: str
+    sub_category: str
+    sentiment: str
+    severity: str
+    risk_type: str
+    owner_team: str
+    recommended_action: str
+    summary: str

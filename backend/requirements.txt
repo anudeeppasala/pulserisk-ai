@@ -3,4 +3,5 @@ pandas
 plotly
 fastapi
 uvicorn
+pydantic
 python-dotenv

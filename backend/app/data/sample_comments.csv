@@ -6,3 +6,8 @@ app_store,Harbor,Mobile App,2,"I cannot download my monthly statement from the a
 google_play,Northstar,Mobile App,1,"The app is very slow and freezes when I check my dashboard.",2026-07-04,9.94.0
 support_ticket,Orion,Customer Portal,1,"There is an unauthorized transaction and the dispute process is confusing.",2026-07-05,4.8.1
 survey,Summit,Customer Portal,3,"I wish the dashboard had better filters and easier navigation.",2026-07-05,4.8.1
+support_ticket,Harbor,Digital Portal,1,"I was charged twice and I still did not receive a refund.",2026-07-06,8.2.0
+survey,Northstar,Mobile App,4,"The app is good but the navigation could be cleaner.",2026-07-06,9.94.0
+support_ticket,Orion,Client Portal,2,"The verification code never arrives and I am locked out of my account.",2026-07-06,4.8.1
+google_play,Summit,Customer Portal,1,"The page keeps loading forever and then shows an unknown error.",2026-07-06,4.8.1
+app_store,Harbor,Mobile App,2,"Uploading documents fails every time and support told me to try later.",2026-07-06,8.2.0
