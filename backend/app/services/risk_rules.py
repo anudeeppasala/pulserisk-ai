@@ -7,19 +7,10 @@ def _contains_any(text: str, keywords: list[str]) -> bool:
 
 def classify_comment_rule_based(text: str, rating: Optional[int] = None) -> dict:
     """
-    Rule-based classifier for PulseRisk AI V1.
+    Transparent rule-based classifier used as the default V2 fallback.
 
-    This function classifies unstructured customer feedback into:
-    - category
-    - sub_category
-    - sentiment
-    - severity
-    - risk_type
-    - owner_team
-    - recommended_action
-
-    V1 intentionally uses transparent rules so the dashboard works without any API keys.
-    Later versions can replace or enhance this with an LLM classifier.
+    V2 supports AI-ready classification, but this rule engine keeps the project
+    fully runnable without API keys.
     """
 
     clean_text = text.strip()
@@ -47,14 +38,15 @@ def classify_comment_rule_based(text: str, rating: Optional[int] = None) -> dict
             "otp",
             "authentication",
             "access my account",
+            "reset",
         ],
     ):
         category = "Authentication / Login"
-        sub_category = "Login or account access issue"
+        sub_category = "Login, verification, or account access issue"
         risk_type = "Operational Risk"
         owner_team = "Identity & Access Team"
         severity = "High"
-        recommended_action = "Investigate authentication, verification, and account access failures."
+        recommended_action = "Investigate authentication, verification, password reset, and account access failures."
 
     elif _contains_any(
         text_lower,
@@ -70,6 +62,7 @@ def classify_comment_rule_based(text: str, rating: Optional[int] = None) -> dict
             "not working",
             "blank screen",
             "stuck",
+            "broken",
         ],
     ):
         category = "App Reliability"
@@ -178,7 +171,7 @@ def classify_comment_rule_based(text: str, rating: Optional[int] = None) -> dict
         severity = "Low"
         recommended_action = "Review as product enhancement input for roadmap planning."
 
-    sentiment = _detect_sentiment(text_lower=text_lower, rating=rating)
+    sentiment = detect_sentiment(text_lower=text_lower, rating=rating)
 
     if rating is not None:
         if rating <= 1 and severity in ["Low", "Medium"]:
@@ -195,10 +188,11 @@ def classify_comment_rule_based(text: str, rating: Optional[int] = None) -> dict
         "owner_team": owner_team,
         "recommended_action": recommended_action,
         "summary": clean_text[:180],
+        "classification_method": "rule_based",
     }
 
 
-def _detect_sentiment(text_lower: str, rating: Optional[int]) -> str:
+def detect_sentiment(text_lower: str, rating: Optional[int]) -> str:
     negative_keywords = [
         "bad",
         "terrible",
@@ -214,6 +208,7 @@ def _detect_sentiment(text_lower: str, rating: Optional[int]) -> str:
         "failed",
         "failing",
         "confusing",
+        "locked out",
     ]
 
     positive_keywords = [
